@@ -30,7 +30,7 @@ function buildModal($modal, title, uri) {
 	$modal.find('.modal-title').text(title);
 	$modal.find('.modal-body').html('<iframe class="gmscript" style="width:100%; height: 500px;"></iframe>');
 	$modal.find('iframe').load(function() {
-		$(this).find('#popup2-middle a.myButton').attr('target', '_blank');
+		//$(this).find('#popup2-middle a.myButton').attr('target', '_blank');
 	});
 	$modal.find('iframe').attr('src', uri);
 	$modal.find('.modal-dialog').css({'width' : '90%', 'height' : '500px'});
