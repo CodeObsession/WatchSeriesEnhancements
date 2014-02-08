@@ -57,7 +57,7 @@ function buildModal($modal, title, uri) {
 		'height': '500px',
 		'padding-top': ''
 	});
-	$modal.modal();
+	$modal.modal({ backdrop: 'static', keyboard: false });
 }
 
 function removeSponsoredLinks() {
