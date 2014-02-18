@@ -40,10 +40,9 @@ function collectData() {
 
 function bindEvents() {
 	$target.on('click', function(e) {
-		var $this = $(this);
 		e.preventDefault();
-		var data = $this.data('linkprops'),
-			title = 'You are watching on: ' + data.host + ' - ' + $('.channel-title .list-top').text();
+		var data = $(this).data('linkprops'),
+			title = 'You are watching on: ' + data.host + ' - ' + $('title').text().replace(/Watch Online | - Watch Series/gi, '');;
 		buildModal($modalTarget, title, data.relativeLink);
 	});
 }
@@ -51,7 +50,19 @@ function bindEvents() {
 function buildModal($modal, title, uri) {
 	$modal.find('.modal-title').text(title);
 	$modal.find('.modal-body').html('<iframe class="gmscript" style="width:100%; height: 500px;"></iframe>');
-	$modal.find('iframe').attr('src', uri);
+    
+	$modal.find('iframe')
+    	.attr('src', uri)
+    	.on('load.GMEnhancement', function() {
+            var $this = $(this);
+            $this.off('load.GMEnhancement'); //Prevent Cross-Origin security error in console
+            var movieURI = $this.contents().find('.myButton').attr('href');
+            if (movieURI) $this.attr('src',movieURI);
+            window.onbeforeunload = function(e) {
+      			return 'Do you want to leave this page? A third-party video host could be atteempting to redirect this window. To prevent this, choose to stay on this page.';
+    		};
+    	});
+    
 	$modal.find('.modal-dialog').css({
 		'width': '90%',
 		'height': '500px',
@@ -60,8 +71,15 @@ function buildModal($modal, title, uri) {
 	$modal.modal({ backdrop: 'static', keyboard: false });
 }
 
-function removeSponsoredLinks() {
+function extraUITweaks() {
 	$('tr.download_link_sponsored').hide();
+    $('[class*="download_link_"]')
+    	.filter(':not(":hidden"):odd')
+    	.css('background-color', '#DDDDDD');
+    
+    $modalTarget.on('hidden.bs.modal', function () {
+  		$(this).find('iframe').remove()
+	});
 }
 
 
@@ -70,5 +88,5 @@ $(function () {
 	cacheTargets();
 	collectData();
 	bindEvents();
-	removeSponsoredLinks();
+	extraUITweaks();
 });
