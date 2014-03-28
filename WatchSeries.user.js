@@ -9,15 +9,15 @@ var CONSTANTS = {
 	badHosts: ['watchseries.lt'],
 	goodHost: 'www.watchseries.to'
 },
-Links = [],
-$modalTarget,
-$target;
+	Links = [],
+	$modalTarget,
+	$target;
 
 
 //Some hosts have an old version of jQuery, and/or are missing the bootstrap modal files that this script has an implicit dependency on
 function RedirectOnInvalidHost() {
-	if(CONSTANTS.badHosts.indexOf(window.location.hostname) > -1) {
-			window.location.href = location.protocol + '//' + CONSTANTS.goodHost + window.location.pathname;
+	if (CONSTANTS.badHosts.indexOf(window.location.hostname) > -1) {
+		window.location.href = location.protocol + '//' + CONSTANTS.goodHost + window.location.pathname;
 	}
 }
 
@@ -50,40 +50,43 @@ function bindEvents() {
 function buildModal($modal, title, uri) {
 	$modal.find('.modal-title').text(title);
 	$modal.find('.modal-body').html('<iframe class="gmscript" style="width:100%; height: 500px;"></iframe>');
-    
+
 	$modal.find('iframe')
-    	.attr('src', uri)
-    	.on('load.GMEnhancement', function() {
-            var $this = $(this);
-            $this.off('load.GMEnhancement'); //Prevent Cross-Origin security error in console
-            var movieURI = $this.contents().find('.myButton').attr('href');
-            if (movieURI) $this.attr('src',movieURI);
-            window.onbeforeunload = function(e) {
-      			return 'Do you want to leave this page? A third-party video host could be atteempting to redirect this window. To prevent this, choose to stay on this page.';
-    		};
-    	});
-    
+		.attr('src', uri)
+		.on('load.GMEnhancement', function() {
+			var $this = $(this);
+			$this.off('load.GMEnhancement'); //Prevent Cross-Origin security error in console
+			var movieURI = $this.contents().find('.myButton').attr('href');
+			if (movieURI) $this.attr('src', movieURI);
+			window.onbeforeunload = function(e) {
+				return 'Do you want to leave this page? A third-party video host could be atteempting to redirect this window. To prevent this, choose to stay on this page.';
+			};
+		});
+
 	$modal.find('.modal-dialog').css({
 		'width': '90%',
 		'height': '500px',
 		'padding-top': ''
 	});
-	$modal.modal({ backdrop: 'static', keyboard: false });
+	$modal.modal({
+		backdrop: 'static',
+		keyboard: false
+	});
 }
 
 function extraUITweaks() {
 	$('tr.download_link_sponsored').hide();
-    $('[class*="download_link_"]')
-    	.filter(':not(":hidden"):odd')
-    	.css('background-color', '#DDDDDD');
-    
-    $modalTarget.on('hidden.bs.modal', function () {
-  		$(this).find('iframe').remove()
+	$('[class*="download_link_"]')
+		.filter(':not(":hidden"):odd')
+		.css('background-color', '#DDDDDD');
+
+	$modalTarget.on('hidden.bs.modal', function() {
+		$(this).find('iframe').remove()
 	});
 }
 
 
-$(function () {
+$(function() {
 	RedirectOnInvalidHost();
 	cacheTargets();
 	collectData();
