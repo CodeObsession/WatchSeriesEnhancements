@@ -32,7 +32,6 @@ function collectData() {
 	$target.each(function(i) {
 		var $this = $(this);
 		Links[i] = {
-			$linkTarget: $this,
 			relativeLink: $this.attr('href'),
 			host: $this.attr('title')
 		};
@@ -45,7 +44,8 @@ function bindEvents() {
 		e.preventDefault();
 
 		var data = $(this).data('linkprops'),
-			title = 'You are watching on: ' + data.host + ' - ' + $('title').text().replace(/Watch Online | - Watch Series/gi, '');
+			title = 'You are watching on: ' + data.host + ' - ' +
+					$('title').text().replace(/Watch Online | - Watch Series/gi, '');
 
 		buildModal($modalTarget, title, data.relativeLink);
 	});
@@ -61,7 +61,7 @@ function buildModal($modal, title, uri) {
 		.find('.modal-body')
 		.html('<iframe class="gmscript" style="width:100%; height: 500px;"></iframe>');
 
-	bindIframeEvents($modal.find('iframe').attr('src', uri));
+	bindIframeEvents.call($modal.find('iframe').attr('src', uri));
 
 	$modal.find('.modal-dialog').css({
 		'width': '90%',
@@ -97,7 +97,8 @@ function extraUITweaks() {
 		.filter(':not(":hidden"):odd')
 		.css('background-color', '#DDDDDD');
 
-
+	//bs.modal is the namespace for jQuery events set by bootstrap.
+    //We hook into this rather than binding a separate click event on the close button
 	$modalTarget.on('hidden.bs.modal', function() {
 		$(this).find('iframe').remove();
 	});
