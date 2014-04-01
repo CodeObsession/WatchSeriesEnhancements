@@ -2,14 +2,16 @@
 // @name WatchSeries Enhancements
 // @description Makes WatchSeries easier to deal with
 // @include *watchseries.*
-// @versions 0.0.1
+// @versions 0.0.2
 // ==/UserScript==
 
 var CONSTANTS = {
 	badHosts: ['watchseries.lt'],
-	goodHost: 'www.watchseries.to'
-},
-	Links = [],
+	goodHost: 'www.watchseries.to',
+	attemptedHijackMessage: 'Do you want to leave this page? A third-party video host could be attempting to redirect this window. To prevent this, choose to stay on this page.'
+};
+
+var Links = [],
 	$modalTarget,
 	$target;
 
@@ -23,7 +25,7 @@ function RedirectOnInvalidHost() {
 
 function cacheTargets() {
 	$modalTarget = $('#addLinkModal');
-	$target = $('#myTable tr[class*="download_link_"]:not(":hidden, [class*=download_link_sponsored]") a.buttonlink');
+	$target = $('#myTable tr[class*="download_link_"]').not(':hidden, [class*=download_link_sponsored]').find('a.buttonlink');
 }
 
 function collectData() {
@@ -41,31 +43,29 @@ function collectData() {
 function bindEvents() {
 	$target.on('click', function(e) {
 		e.preventDefault();
+
 		var data = $(this).data('linkprops'),
-			title = 'You are watching on: ' + data.host + ' - ' + $('title').text().replace(/Watch Online | - Watch Series/gi, '');;
+			title = 'You are watching on: ' + data.host + ' - ' + $('title').text().replace(/Watch Online | - Watch Series/gi, '');
+
 		buildModal($modalTarget, title, data.relativeLink);
 	});
 }
 
 function buildModal($modal, title, uri) {
-	$modal.find('.modal-title').text(title);
-	$modal.find('.modal-body').html('<iframe class="gmscript" style="width:100%; height: 500px;"></iframe>');
+	$modal
+		.find('.modal-title')
+		.text(title)
 
-	$modal.find('iframe')
-		.attr('src', uri)
-		.on('load.GMEnhancement', function() {
-			var $this = $(this);
-			$this.off('load.GMEnhancement'); //Prevent Cross-Origin security error in console
-			var movieURI = $this.contents().find('.myButton').attr('href');
-			if (movieURI) $this.attr('src', movieURI);
-			window.onbeforeunload = function(e) {
-				return 'Do you want to leave this page? A third-party video host could be atteempting to redirect this window. To prevent this, choose to stay on this page.';
-			};
-		});
+		.end()
+
+		.find('.modal-body')
+		.html('<iframe class="gmscript" style="width:100%; height: 500px;"></iframe>');
+
+	bindIframeEvents($modal.find('iframe').attr('src', uri));
 
 	$modal.find('.modal-dialog').css({
 		'width': '90%',
-		'height': '500px',
+		'height': '700px',
 		'padding-top': ''
 	});
 	$modal.modal({
@@ -74,14 +74,32 @@ function buildModal($modal, title, uri) {
 	});
 }
 
+function bindIframeEvents() {
+	this.on('load.GMEnhancement', function() {
+		var $this = $(this);
+		$this.off('load.GMEnhancement'); //Prevent Cross-Origin security error in console
+
+		var movieURI = $this.contents().find('.myButton').attr('href');
+		if (movieURI) $this.attr('src', movieURI);
+
+		window.onbeforeunload = function(e) {
+			return CONSTANTS.attemptedHijackMessage;
+		};
+	});
+}
+
 function extraUITweaks() {
+	//Ads
 	$('tr.download_link_sponsored').hide();
+
+	//zebra-striping, taking into account hidden ad-rows
 	$('[class*="download_link_"]')
 		.filter(':not(":hidden"):odd')
 		.css('background-color', '#DDDDDD');
 
+
 	$modalTarget.on('hidden.bs.modal', function() {
-		$(this).find('iframe').remove()
+		$(this).find('iframe').remove();
 	});
 }
 
