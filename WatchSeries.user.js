@@ -16,8 +16,8 @@ var Links = [],
 	$target;
 
 
-//Some hosts have an old version of jQuery, and/or are missing the bootstrap modal files that this script has an implicit dependency on
 function RedirectOnInvalidHost() {
+	//Some hosts have an old version of jQuery, and/or are missing the bootstrap modal files that this script has an implicit dependency on
 	if (CONSTANTS.badHosts.indexOf(window.location.hostname) > -1) {
 		window.location.href = location.protocol + '//' + CONSTANTS.goodHost + window.location.pathname;
 	}
@@ -25,7 +25,9 @@ function RedirectOnInvalidHost() {
 
 function cacheTargets() {
 	$modalTarget = $('#addLinkModal');
-	$target = $('#myTable tr[class*="download_link_"]').not(':hidden, [class*=download_link_sponsored]').find('a.buttonlink');
+	$target = $('#myTable tr[class*="download_link_"]')
+				.not(':hidden, [class*=download_link_sponsored]')
+				.find('a.buttonlink');
 }
 
 function collectData() {
@@ -55,9 +57,7 @@ function buildModal($modal, title, uri) {
 	$modal
 		.find('.modal-title')
 		.text(title)
-
 		.end()
-
 		.find('.modal-body')
 		.html('<iframe class="gmscript" style="width:100%; height: 500px;"></iframe>');
 
@@ -78,9 +78,14 @@ function bindIframeEvents() {
 	this.on('load.GMEnhancement', function() {
 		var $this = $(this);
 		$this.off('load.GMEnhancement'); //Prevent Cross-Origin security error in console
+		$this.on('load.GMEnhancement', function() {
+			runPlugins(this.src);
+		});
 
 		var movieURI = $this.contents().find('.myButton').attr('href');
 		if (movieURI) $this.attr('src', movieURI);
+
+
 
 		window.onbeforeunload = function(e) {
 			return CONSTANTS.attemptedHijackMessage;
@@ -104,6 +109,39 @@ function extraUITweaks() {
 	});
 }
 
+/*
+TODO:
+	1) Allow creating Plugins that match a specific pattern of uri's to be executed on
+	2) Plugin executes on dom ready
+	3) Plugins should "kill the countdown" for frequently-used hosts
+
+*/
+
+/*------------------------------
+			Plugins
+------------------------------*/
+function runPlugins(uri) {
+	Object.keys(PluginStore).forEach(function (name) {
+		var current = PluginStore[name];
+		if (current.uriPattern.test(uri)) {
+			current.fn(uri);
+		}
+	});
+}
+
+var PluginStore = {};
+
+function PagePlugin(config) {
+	this.uriPattern = config.uriPattern;
+	this.fn = config.fn;
+}
+
+PluginStore.gorillaVid = new PagePlugin({
+	uriPattern: /gorillavid/i,
+	fn: function(uri) {
+		console.log('liiiveeee');
+	}
+});
 
 $(function() {
 	RedirectOnInvalidHost();
