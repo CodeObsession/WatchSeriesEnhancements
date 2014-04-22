@@ -3,6 +3,8 @@
 // @description Makes WatchSeries easier to deal with
 // @include *watchseries.*
 // @include *gorillavid*
+// @include *daclips*
+// @include *movpod*
 // @versions 0.0.2
 // ==/UserScript==
 
@@ -140,7 +142,7 @@ function PagePlugin(config) {
 }
 
 PluginStore.gorillaVid = new PagePlugin({
-	uriPattern: /gorillavid/i,
+	uriPattern: /gorillavid|daclips|movpod/i,
 	fn: function(uri) {
 		$('#btn_download')
 			.attr('disabled', false)
