@@ -64,10 +64,8 @@ function bindEvents() {
 }
 
 function buildModal($modal, title, uri) {
-	$modal
-		.find('.modal-title')
-		.text(title)
-		.end()
+	$modal.find('.modal-title')
+		.text(title).end()
 		.find('.modal-body')
 		.html('<iframe class="gmscript" style="width:100%; height: 500px;"></iframe>');
 
@@ -88,14 +86,12 @@ function bindIframeEvents() {
 	this.on('load.GMEnhancement', function() {
 		var $this = $(this);
 		$this.off('load.GMEnhancement'); //Prevent Cross-Origin security error in console
-		$this.on('load.GMEnhancement', function() {
+		$this.on('load', function() {
 			runPlugins(this.src);
 		});
 
 		var movieURI = $this.contents().find('.myButton').attr('href');
 		if (movieURI) $this.attr('src', movieURI);
-
-
 
 		window.onbeforeunload = function(e) {
 			return CONSTANTS.attemptedHijackMessage;
@@ -148,7 +144,6 @@ PluginStore.gorillaVid = new PagePlugin({
 	fn: function(uri) {
 		$('#btn_download')
 			.attr('disabled', false)
-			.val('*wink*')
 			.click();
 	}
 });
