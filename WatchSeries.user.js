@@ -2,6 +2,7 @@
 // @name WatchSeries Enhancements
 // @description Makes WatchSeries easier to deal with
 // @include *watchseries.*
+// @include *gorillavid*
 // @versions 0.0.2
 // ==/UserScript==
 
@@ -18,9 +19,18 @@ var Links = [],
 
 function RedirectOnInvalidHost() {
 	//Some hosts have an old version of jQuery, and/or are missing the bootstrap modal files that this script has an implicit dependency on
-	if (CONSTANTS.badHosts.indexOf(window.location.hostname) > -1) {
-		window.location.href = location.protocol + '//' + CONSTANTS.goodHost + window.location.pathname;
-	}
+	if (!CONSTANTS.badHosts.indexOf(window.location.hostname) > -1) return;
+
+	window.location.href = location.protocol + '//' + CONSTANTS.goodHost + window.location.pathname;
+}
+
+function checkForWatchSeries() {
+	if (CONSTANTS.goodHost.indexOf(window.location.hostname) < 0) return;
+	RedirectOnInvalidHost();
+	cacheTargets();
+	collectData();
+	bindEvents();
+	extraUITweaks();
 }
 
 function cacheTargets() {
@@ -109,24 +119,21 @@ function extraUITweaks() {
 	});
 }
 
-/*
-TODO:
-	1) Allow creating Plugins that match a specific pattern of uri's to be executed on
-	2) Plugin executes on dom ready
-	3) Plugins should "kill the countdown" for frequently-used hosts
-
-*/
-
 /*------------------------------
 			Plugins
+
+	Due to limitations with GM,
+	if you create a plugin, you
+	must include the hostname
+	in an @include directive
+	in the metadata at the top
+	of the file
 ------------------------------*/
-function runPlugins(uri) {
-	Object.keys(PluginStore).forEach(function (name) {
-		var current = PluginStore[name];
-		if (current.uriPattern.test(uri)) {
-			current.fn(uri);
-		}
-	});
+
+function checkForPlugins() {
+	var uri = window.location.href;
+	if (CONSTANTS.goodHost.indexOf(uri) > -1) return;
+	runPlugins(uri);
 }
 
 var PluginStore = {};
@@ -139,14 +146,21 @@ function PagePlugin(config) {
 PluginStore.gorillaVid = new PagePlugin({
 	uriPattern: /gorillavid/i,
 	fn: function(uri) {
-		console.log('liiiveeee');
+		$('#btn_download')
+			.attr('disabled', false)
+			.val('*wink*')
+			.click();
 	}
 });
 
-$(function() {
-	RedirectOnInvalidHost();
-	cacheTargets();
-	collectData();
-	bindEvents();
-	extraUITweaks();
-});
+function runPlugins(uri) {
+	Object.keys(PluginStore).forEach(function (name) {
+		var current = PluginStore[name];
+		if (current.uriPattern.test(uri)) {
+			current.fn(uri);
+		}
+	});
+}
+
+checkForPlugins();
+checkForWatchSeries();
