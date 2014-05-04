@@ -21,9 +21,9 @@ var Links = [],
 
 function RedirectOnInvalidHost() {
 	//Some hosts have an old version of jQuery, and/or are missing the bootstrap modal files that this script has an implicit dependency on
-	if (!CONSTANTS.badHosts.indexOf(window.location.hostname) > -1) return;
-
-	window.location.href = location.protocol + '//' + CONSTANTS.goodHost + window.location.pathname;
+	if (CONSTANTS.badHosts.indexOf(window.location.hostname) > -1) {
+		window.location.href = location.protocol + '//' + CONSTANTS.goodHost + window.location.pathname;
+	};
 }
 
 function checkForWatchSeries() {
@@ -125,11 +125,17 @@ function extraUITweaks() {
 	must include the hostname
 	in an @include directive
 	in the metadata at the top
-	of the file
+	of the file. This is a trade-
+	off to prevent having to run
+	GM on every single page you
+	visit.
 ------------------------------*/
 
 function checkForPlugins() {
 	var uri = window.location.href;
+	if (CONSTANTS.badHosts.indexOf(window.location.hostname) > -1) {
+		RedirectOnInvalidHost();
+	}
 	if (CONSTANTS.goodHost.indexOf(uri) > -1) return;
 	runPlugins(uri);
 }
@@ -154,7 +160,7 @@ function runPlugins(uri) {
 	Object.keys(PluginStore).forEach(function (name) {
 		var current = PluginStore[name];
 		if (current.uriPattern.test(uri)) {
-			current.fn(uri);
+			current.fn.call(this, uri);
 		}
 	});
 }
